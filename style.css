@@ -202,6 +202,30 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .review-a { color: #555; }
 .review-a.correct-answer { color: var(--correct); font-weight: 600; }
 
+.firebase-banner {
+  background: #fff6e0;
+  border: 1px solid #e8c76b;
+  color: #7a5c00;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.admin-link {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.admin-link a {
+  color: #888;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.admin-link a:hover { text-decoration: underline; }
+
 .category-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -376,4 +400,5 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .category-option { background: #1c2c22; border-color: #2b3f33; color: var(--text); }
   .category-option.selected { background: #223526; border-color: var(--green-light); color: var(--green-light); }
   .category-badge { background: #223526; color: var(--green-light); }
+  .firebase-banner { background: #2b2410; border-color: #6b5416; color: #e8c76b; }
 }

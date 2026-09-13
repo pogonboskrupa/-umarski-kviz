@@ -2,6 +2,39 @@ const LEADERBOARD_KEY = "sumarski-kviz-rezultati";
 const TIME_PER_QUESTION = 20;
 const MAX_QUESTIONS = 20;
 
+const firebaseBanner = document.getElementById("firebaseBanner");
+let ACTIVE_QUESTIONS = QUESTIONS;
+
+async function loadQuestionPool() {
+  if (!db) {
+    firebaseBanner.hidden = false;
+    return;
+  }
+  try {
+    const snapshot = await db.collection("questions").where("active", "==", true).get();
+    if (!snapshot.empty) {
+      ACTIVE_QUESTIONS = snapshot.docs.map((doc) => doc.data());
+    }
+  } catch (err) {
+    console.error("Neuspjelo učitavanje pitanja iz baze, koriste se ugrađena pitanja.", err);
+  }
+}
+
+function saveResultToFirestore(correctCount, total, percent) {
+  if (!db) return;
+  db.collection("results")
+    .add({
+      name: playerName,
+      category: selectedCategory,
+      categoryLabel: categoryLabel(selectedCategory),
+      score: correctCount,
+      total,
+      percent,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .catch((err) => console.error("Neuspjelo slanje rezultata u bazu.", err));
+}
+
 const screens = {
   start: document.getElementById("screen-start"),
   quiz: document.getElementById("screen-quiz"),
@@ -68,7 +101,7 @@ function shuffle(array) {
 }
 
 function buildQuizQuestions(categoryId) {
-  const pool = categoryId === "mix" ? QUESTIONS : QUESTIONS.filter((q) => q.category === categoryId);
+  const pool = categoryId === "mix" ? ACTIVE_QUESTIONS : ACTIVE_QUESTIONS.filter((q) => q.category === categoryId);
   return shuffle(pool)
     .slice(0, MAX_QUESTIONS)
     .map((q) => {
@@ -220,6 +253,7 @@ function showResult() {
   });
 
   saveToLeaderboard(correctCount, total, percent);
+  saveResultToFirestore(correctCount, total, percent);
   showScreen("result");
 }
 
@@ -326,6 +360,13 @@ clearLeaderboardBtn.addEventListener("click", clearLeaderboard);
 shareBtn.addEventListener("click", shareResult);
 
 renderCategoryGrid();
+
+startBtn.disabled = true;
+startBtn.textContent = "Učitavanje pitanja...";
+loadQuestionPool().finally(() => {
+  startBtn.disabled = false;
+  startBtn.textContent = "Započni kviz";
+});
 
 document.addEventListener("keydown", (e) => {
   if (!screens.quiz.classList.contains("active")) return;

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Šumarski kviz — Admin</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="app admin-app">
+    <div id="firebaseBanner" class="firebase-banner" hidden>
+      ⚠️ Firebase nije povezan. Popunite <code>firebase-config.js</code> podacima vašeg projekta
+      (vidi README.md) da bi admin panel radio.
+    </div>
+
+    <!-- Prijava -->
+    <section id="screen-login" class="screen active">
+      <h1>🔐 Admin prijava</h1>
+      <label for="loginEmail">Email</label>
+      <input id="loginEmail" type="email" autocomplete="username" />
+      <label for="loginPassword">Lozinka</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" />
+      <p id="loginError" class="error-text" hidden></p>
+      <button id="loginBtn">Prijavi se</button>
+      <p class="admin-link"><a href="index.html">← Nazad na kviz</a></p>
+    </section>
+
+    <!-- Admin panel -->
+    <section id="screen-admin" class="screen">
+      <div class="admin-header">
+        <h1>🛠️ Admin panel</h1>
+        <button id="logoutBtn" class="btn-secondary btn-small">Odjava</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="questions">📋 Pitanja</button>
+        <button class="tab-btn" data-tab="results">📊 Rezultati</button>
+      </div>
+
+      <!-- Tab: Pitanja -->
+      <div id="tab-questions" class="tab-panel active">
+        <div class="toolbar">
+          <select id="categoryFilter"></select>
+          <button id="seedBtn" class="btn-secondary btn-small">⬇️ Uvezi ugrađenih 75 pitanja</button>
+          <button id="addQuestionBtn" class="btn-small">+ Novo pitanje</button>
+        </div>
+        <p id="questionsCount" class="muted-text"></p>
+        <div id="questionForm" class="question-form" hidden></div>
+        <div id="questionsList" class="questions-list"></div>
+      </div>
+
+      <!-- Tab: Rezultati -->
+      <div id="tab-results" class="tab-panel">
+        <div class="stats-row" id="statsRow"></div>
+        <div class="toolbar">
+          <select id="resultsCategoryFilter"></select>
+          <button id="exportCsvBtn" class="btn-secondary btn-small">⬇️ Izvezi CSV</button>
+          <button id="refreshResultsBtn" class="btn-secondary btn-small">🔄 Osvježi</button>
+        </div>
+        <div id="resultsTableWrap" class="results-table-wrap"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="questions.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

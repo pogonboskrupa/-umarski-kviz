@@ -8,6 +8,11 @@
 </head>
 <body>
   <div class="app">
+    <div id="firebaseBanner" class="firebase-banner" hidden>
+      ⚠️ Baza nije povezana — kviz koristi ugrađena pitanja, a rezultati se pamte samo lokalno.
+      Pogledajte README.md za postavljanje Firebase-a i objedinjeno praćenje rezultata.
+    </div>
+
     <!-- Ekran za unos imena -->
     <section id="screen-start" class="screen active">
       <h1>🌲 Šumarski kviz</h1>
@@ -23,7 +28,7 @@
         Kviz s tajmerom (20s po pitanju)
       </label>
       <button id="startBtn">Započni kviz</button>
-      <button id="leaderboardBtn" class="btn-secondary">🏆 Rang lista</button>
+      <button id="leaderboardBtn" class="btn-secondary">🏆 Rang lista (ovaj uređaj)</button>
     </section>
 
     <!-- Ekran s pitanjima -->
@@ -63,8 +68,15 @@
       <button id="clearLeaderboardBtn" class="btn-secondary btn-danger">Obriši rang listu</button>
       <button id="backFromLeaderboardBtn">Nazad</button>
     </section>
+
+    <p class="admin-link"><a href="admin.html">Admin panel →</a></p>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-init.js"></script>
   <script src="questions.js"></script>
   <script src="script.js"></script>
 </body>
