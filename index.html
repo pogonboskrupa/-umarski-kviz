@@ -14,6 +14,10 @@
       <p class="subtitle">20 pitanja o šumarstvu — provjeri svoje znanje!</p>
       <label for="playerName">Unesite vaše ime</label>
       <input id="playerName" type="text" placeholder="Ime i prezime" maxlength="40" autocomplete="off" />
+
+      <label>Grupa pitanja</label>
+      <div id="categoryGrid" class="category-grid"></div>
+
       <label class="checkbox-label">
         <input id="timerToggle" type="checkbox" checked />
         Kviz s tajmerom (20s po pitanju)
@@ -25,6 +29,7 @@
     <!-- Ekran s pitanjima -->
     <section id="screen-quiz" class="screen">
       <div class="quiz-header">
+        <span id="categoryBadge" class="category-badge"></span>
         <span id="progressText">Pitanje 1 / 20</span>
         <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
       </div>

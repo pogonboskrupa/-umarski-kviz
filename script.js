@@ -1,5 +1,6 @@
 const LEADERBOARD_KEY = "sumarski-kviz-rezultati";
 const TIME_PER_QUESTION = 20;
+const MAX_QUESTIONS = 20;
 
 const screens = {
   start: document.getElementById("screen-start"),
@@ -9,6 +10,8 @@ const screens = {
 };
 
 const playerNameInput = document.getElementById("playerName");
+const categoryGrid = document.getElementById("categoryGrid");
+const categoryBadge = document.getElementById("categoryBadge");
 const timerToggle = document.getElementById("timerToggle");
 const startBtn = document.getElementById("startBtn");
 const leaderboardBtn = document.getElementById("leaderboardBtn");
@@ -38,6 +41,22 @@ let playerName = "";
 let timerOn = true;
 let timerInterval = null;
 let timeLeft = TIME_PER_QUESTION;
+let selectedCategory = "mix";
+
+function renderCategoryGrid() {
+  categoryGrid.innerHTML = "";
+  CATEGORIES.forEach((cat) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "category-option" + (cat.id === selectedCategory ? " selected" : "");
+    btn.innerHTML = `<span class="cat-icon">${cat.icon}</span><span>${cat.label}</span>`;
+    btn.addEventListener("click", () => {
+      selectedCategory = cat.id;
+      renderCategoryGrid();
+    });
+    categoryGrid.appendChild(btn);
+  });
+}
 
 function shuffle(array) {
   const arr = array.slice();
@@ -48,16 +67,24 @@ function shuffle(array) {
   return arr;
 }
 
-function buildQuizQuestions() {
-  return shuffle(QUESTIONS).map((q) => {
-    const correctText = q.a[q.correct];
-    const shuffledAnswers = shuffle(q.a);
-    return {
-      q: q.q,
-      a: shuffledAnswers,
-      correct: shuffledAnswers.indexOf(correctText),
-    };
-  });
+function buildQuizQuestions(categoryId) {
+  const pool = categoryId === "mix" ? QUESTIONS : QUESTIONS.filter((q) => q.category === categoryId);
+  return shuffle(pool)
+    .slice(0, MAX_QUESTIONS)
+    .map((q) => {
+      const correctText = q.a[q.correct];
+      const shuffledAnswers = shuffle(q.a);
+      return {
+        q: q.q,
+        a: shuffledAnswers,
+        correct: shuffledAnswers.indexOf(correctText),
+      };
+    });
+}
+
+function categoryLabel(id) {
+  const cat = CATEGORIES.find((c) => c.id === id);
+  return cat ? `${cat.icon} ${cat.label}` : "";
 }
 
 function showScreen(name) {
@@ -74,7 +101,8 @@ function startQuiz() {
   }
   playerName = name;
   timerOn = timerToggle.checked;
-  quizQuestions = buildQuizQuestions();
+  quizQuestions = buildQuizQuestions(selectedCategory);
+  categoryBadge.textContent = categoryLabel(selectedCategory);
   currentIndex = 0;
   answersLog = [];
   showScreen("quiz");
@@ -219,6 +247,7 @@ function saveToLeaderboard(correctCount, total, percent) {
       score: correctCount,
       total,
       percent,
+      category: categoryLabel(selectedCategory),
       date: new Date().toLocaleString("bs-BA"),
     });
     localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(entries));
@@ -243,7 +272,7 @@ function renderLeaderboard() {
       <span class="leaderboard-rank">${idx + 1}.</span>
       <span class="leaderboard-info">
         <div class="leaderboard-name">${entry.name}</div>
-        <div class="leaderboard-date">${entry.date}</div>
+        <div class="leaderboard-date">${entry.category ? entry.category + " · " : ""}${entry.date}</div>
       </span>
       <span class="leaderboard-score">${entry.score}/${entry.total} (${entry.percent}%)</span>
     `;
@@ -295,6 +324,8 @@ leaderboardBtn.addEventListener("click", openLeaderboard);
 backFromLeaderboardBtn.addEventListener("click", () => showScreen("start"));
 clearLeaderboardBtn.addEventListener("click", clearLeaderboard);
 shareBtn.addEventListener("click", shareResult);
+
+renderCategoryGrid();
 
 document.addEventListener("keydown", (e) => {
   if (!screens.quiz.classList.contains("active")) return;
