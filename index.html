@@ -14,7 +14,12 @@
       <p class="subtitle">20 pitanja o šumarstvu — provjeri svoje znanje!</p>
       <label for="playerName">Unesite vaše ime</label>
       <input id="playerName" type="text" placeholder="Ime i prezime" maxlength="40" autocomplete="off" />
+      <label class="checkbox-label">
+        <input id="timerToggle" type="checkbox" checked />
+        Kviz s tajmerom (20s po pitanju)
+      </label>
       <button id="startBtn">Započni kviz</button>
+      <button id="leaderboardBtn" class="btn-secondary">🏆 Rang lista</button>
     </section>
 
     <!-- Ekran s pitanjima -->
@@ -22,6 +27,10 @@
       <div class="quiz-header">
         <span id="progressText">Pitanje 1 / 20</span>
         <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+      </div>
+      <div id="timerWrap" class="timer-wrap">
+        <div id="timerFill" class="timer-fill"></div>
+        <span id="timerText">20</span>
       </div>
       <h2 id="questionText"></h2>
       <div id="answers" class="answers"></div>
@@ -34,8 +43,20 @@
       <p id="resultName" class="result-name"></p>
       <p id="resultScore" class="result-score"></p>
       <p id="resultGrade" class="result-grade"></p>
+      <div class="result-actions">
+        <button id="shareBtn" class="btn-secondary">📋 Kopiraj rezultat</button>
+      </div>
       <div id="reviewList" class="review-list"></div>
       <button id="restartBtn">Novi pokušaj</button>
+    </section>
+
+    <!-- Ekran s rang-listom -->
+    <section id="screen-leaderboard" class="screen">
+      <h1>🏆 Rang lista</h1>
+      <p class="subtitle">Rezultati svih koji su rješavali kviz na ovom uređaju</p>
+      <div id="leaderboardList" class="leaderboard-list"></div>
+      <button id="clearLeaderboardBtn" class="btn-secondary btn-danger">Obriši rang listu</button>
+      <button id="backFromLeaderboardBtn">Nazad</button>
     </section>
   </div>
 

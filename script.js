@@ -1,26 +1,64 @@
+const LEADERBOARD_KEY = "sumarski-kviz-rezultati";
+const TIME_PER_QUESTION = 20;
+
 const screens = {
   start: document.getElementById("screen-start"),
   quiz: document.getElementById("screen-quiz"),
   result: document.getElementById("screen-result"),
+  leaderboard: document.getElementById("screen-leaderboard"),
 };
 
 const playerNameInput = document.getElementById("playerName");
+const timerToggle = document.getElementById("timerToggle");
 const startBtn = document.getElementById("startBtn");
+const leaderboardBtn = document.getElementById("leaderboardBtn");
 const nextBtn = document.getElementById("nextBtn");
 const restartBtn = document.getElementById("restartBtn");
+const shareBtn = document.getElementById("shareBtn");
 const progressText = document.getElementById("progressText");
 const progressFill = document.getElementById("progressFill");
+const timerWrap = document.getElementById("timerWrap");
+const timerFill = document.getElementById("timerFill");
+const timerText = document.getElementById("timerText");
 const questionText = document.getElementById("questionText");
 const answersEl = document.getElementById("answers");
 const resultName = document.getElementById("resultName");
 const resultScore = document.getElementById("resultScore");
 const resultGrade = document.getElementById("resultGrade");
 const reviewList = document.getElementById("reviewList");
+const leaderboardList = document.getElementById("leaderboardList");
+const clearLeaderboardBtn = document.getElementById("clearLeaderboardBtn");
+const backFromLeaderboardBtn = document.getElementById("backFromLeaderboardBtn");
 
+let quizQuestions = [];
 let currentIndex = 0;
 let selectedAnswer = null;
 let answersLog = [];
 let playerName = "";
+let timerOn = true;
+let timerInterval = null;
+let timeLeft = TIME_PER_QUESTION;
+
+function shuffle(array) {
+  const arr = array.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildQuizQuestions() {
+  return shuffle(QUESTIONS).map((q) => {
+    const correctText = q.a[q.correct];
+    const shuffledAnswers = shuffle(q.a);
+    return {
+      q: q.q,
+      a: shuffledAnswers,
+      correct: shuffledAnswers.indexOf(correctText),
+    };
+  });
+}
 
 function showScreen(name) {
   Object.values(screens).forEach((s) => s.classList.remove("active"));
@@ -35,6 +73,8 @@ function startQuiz() {
     return;
   }
   playerName = name;
+  timerOn = timerToggle.checked;
+  quizQuestions = buildQuizQuestions();
   currentIndex = 0;
   answersLog = [];
   showScreen("quiz");
@@ -42,13 +82,13 @@ function startQuiz() {
 }
 
 function renderQuestion() {
-  const question = QUESTIONS[currentIndex];
+  const question = quizQuestions[currentIndex];
   selectedAnswer = null;
   nextBtn.disabled = true;
-  nextBtn.textContent = currentIndex === QUESTIONS.length - 1 ? "Prikaži rezultat" : "Sljedeće pitanje";
+  nextBtn.textContent = currentIndex === quizQuestions.length - 1 ? "Prikaži rezultat" : "Sljedeće pitanje";
 
-  progressText.textContent = `Pitanje ${currentIndex + 1} / ${QUESTIONS.length}`;
-  progressFill.style.width = `${(currentIndex / QUESTIONS.length) * 100}%`;
+  progressText.textContent = `Pitanje ${currentIndex + 1} / ${quizQuestions.length}`;
+  progressFill.style.width = `${(currentIndex / quizQuestions.length) * 100}%`;
 
   questionText.textContent = question.q;
   answersEl.innerHTML = "";
@@ -57,16 +97,51 @@ function renderQuestion() {
     const btn = document.createElement("button");
     btn.className = "answer-btn";
     btn.textContent = answerText;
-    btn.addEventListener("click", () => selectAnswer(idx, btn));
+    btn.addEventListener("click", () => selectAnswer(idx));
     answersEl.appendChild(btn);
   });
+
+  startTimer();
 }
 
-function selectAnswer(idx, btn) {
-  if (selectedAnswer !== null) return;
-  selectedAnswer = idx;
+function startTimer() {
+  clearInterval(timerInterval);
+  if (!timerOn) {
+    timerWrap.classList.remove("active");
+    return;
+  }
+  timerWrap.classList.add("active");
+  timeLeft = TIME_PER_QUESTION;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timeUp();
+    }
+  }, 1000);
+}
 
-  const question = QUESTIONS[currentIndex];
+function updateTimerUI() {
+  timerText.textContent = timeLeft;
+  const percent = (timeLeft / TIME_PER_QUESTION) * 100;
+  timerFill.style.width = `${percent}%`;
+  timerFill.classList.toggle("warn", percent <= 50 && percent > 20);
+  timerFill.classList.toggle("danger", percent <= 20);
+}
+
+function timeUp() {
+  if (selectedAnswer !== null) return;
+  selectAnswer(null);
+}
+
+function selectAnswer(idx) {
+  if (selectedAnswer !== null) return;
+  selectedAnswer = idx === null ? -1 : idx;
+  clearInterval(timerInterval);
+
+  const question = quizQuestions[currentIndex];
   const buttons = Array.from(answersEl.children);
   buttons.forEach((b, i) => {
     b.disabled = true;
@@ -76,7 +151,7 @@ function selectAnswer(idx, btn) {
 
   answersLog.push({
     question: question.q,
-    chosen: question.a[idx],
+    chosen: idx === null ? "(nema odgovora — isteklo vrijeme)" : question.a[idx],
     correctAnswer: question.a[question.correct],
     isCorrect: idx === question.correct,
   });
@@ -85,10 +160,11 @@ function selectAnswer(idx, btn) {
 }
 
 function nextQuestion() {
-  if (currentIndex < QUESTIONS.length - 1) {
+  if (currentIndex < quizQuestions.length - 1) {
     currentIndex++;
     renderQuestion();
   } else {
+    clearInterval(timerInterval);
     showResult();
   }
 }
@@ -96,7 +172,7 @@ function nextQuestion() {
 function showResult() {
   progressFill.style.width = "100%";
   const correctCount = answersLog.filter((a) => a.isCorrect).length;
-  const total = QUESTIONS.length;
+  const total = quizQuestions.length;
   const percent = Math.round((correctCount / total) * 100);
 
   resultName.textContent = playerName;
@@ -115,6 +191,7 @@ function showResult() {
     reviewList.appendChild(item);
   });
 
+  saveToLeaderboard(correctCount, total, percent);
   showScreen("result");
 }
 
@@ -123,6 +200,82 @@ function gradeFor(percent) {
   if (percent >= 70) return "🌲 Vrlo dobro znanje!";
   if (percent >= 50) return "🌿 Solidno, ima prostora za napredak.";
   return "🍂 Vrijeme za malo dodatnog učenja o šumarstvu.";
+}
+
+function loadLeaderboard() {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveToLeaderboard(correctCount, total, percent) {
+  try {
+    const entries = loadLeaderboard();
+    entries.push({
+      name: playerName,
+      score: correctCount,
+      total,
+      percent,
+      date: new Date().toLocaleString("bs-BA"),
+    });
+    localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(entries));
+  } catch {
+    // localStorage nedostupan (privatni mod i sl.) — nastavi bez pohrane
+  }
+}
+
+function renderLeaderboard() {
+  const entries = loadLeaderboard().sort((a, b) => b.percent - a.percent || b.score - a.score);
+  leaderboardList.innerHTML = "";
+
+  if (entries.length === 0) {
+    leaderboardList.innerHTML = '<p class="leaderboard-empty">Još nema rezultata na ovom uređaju.</p>';
+    return;
+  }
+
+  entries.forEach((entry, idx) => {
+    const item = document.createElement("div");
+    item.className = "leaderboard-item";
+    item.innerHTML = `
+      <span class="leaderboard-rank">${idx + 1}.</span>
+      <span class="leaderboard-info">
+        <div class="leaderboard-name">${entry.name}</div>
+        <div class="leaderboard-date">${entry.date}</div>
+      </span>
+      <span class="leaderboard-score">${entry.score}/${entry.total} (${entry.percent}%)</span>
+    `;
+    leaderboardList.appendChild(item);
+  });
+}
+
+function openLeaderboard() {
+  renderLeaderboard();
+  showScreen("leaderboard");
+}
+
+function clearLeaderboard() {
+  if (!confirm("Obrisati sve rezultate sa ovog uređaja?")) return;
+  localStorage.removeItem(LEADERBOARD_KEY);
+  renderLeaderboard();
+}
+
+function shareResult() {
+  const correctCount = answersLog.filter((a) => a.isCorrect).length;
+  const total = quizQuestions.length;
+  const percent = Math.round((correctCount / total) * 100);
+  const text = `Šumarski kviz — ${playerName}: ${correctCount}/${total} (${percent}%)`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      shareBtn.textContent = "✅ Kopirano!";
+      setTimeout(() => (shareBtn.textContent = "📋 Kopiraj rezultat"), 1800);
+    });
+  } else {
+    prompt("Kopirajte rezultat:", text);
+  }
 }
 
 function restartQuiz() {
@@ -138,3 +291,17 @@ playerNameInput.addEventListener("keydown", (e) => {
 });
 nextBtn.addEventListener("click", nextQuestion);
 restartBtn.addEventListener("click", restartQuiz);
+leaderboardBtn.addEventListener("click", openLeaderboard);
+backFromLeaderboardBtn.addEventListener("click", () => showScreen("start"));
+clearLeaderboardBtn.addEventListener("click", clearLeaderboard);
+shareBtn.addEventListener("click", shareResult);
+
+document.addEventListener("keydown", (e) => {
+  if (!screens.quiz.classList.contains("active")) return;
+  if (["1", "2", "3", "4"].includes(e.key)) {
+    const idx = Number(e.key) - 1;
+    if (idx < answersEl.children.length) selectAnswer(idx);
+  } else if (e.key === "Enter" && !nextBtn.disabled) {
+    nextQuestion();
+  }
+});
