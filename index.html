@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Šumarski kviz</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Ekran za unos imena -->
+    <section id="screen-start" class="screen active">
+      <h1>🌲 Šumarski kviz</h1>
+      <p class="subtitle">20 pitanja o šumarstvu — provjeri svoje znanje!</p>
+      <label for="playerName">Unesite vaše ime</label>
+      <input id="playerName" type="text" placeholder="Ime i prezime" maxlength="40" autocomplete="off" />
+      <button id="startBtn">Započni kviz</button>
+    </section>
+
+    <!-- Ekran s pitanjima -->
+    <section id="screen-quiz" class="screen">
+      <div class="quiz-header">
+        <span id="progressText">Pitanje 1 / 20</span>
+        <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+      </div>
+      <h2 id="questionText"></h2>
+      <div id="answers" class="answers"></div>
+      <button id="nextBtn" disabled>Sljedeće pitanje</button>
+    </section>
+
+    <!-- Ekran s rezultatom -->
+    <section id="screen-result" class="screen">
+      <h1>Rezultat</h1>
+      <p id="resultName" class="result-name"></p>
+      <p id="resultScore" class="result-score"></p>
+      <p id="resultGrade" class="result-grade"></p>
+      <div id="reviewList" class="review-list"></div>
+      <button id="restartBtn">Novi pokušaj</button>
+    </section>
+  </div>
+
+  <script src="questions.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
