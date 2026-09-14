@@ -1,43 +1,84 @@
 # Šumarski kviz
 
-Statički web kviz o šumarstvu (4 ponuđena odgovora po pitanju), sa 6 grupa pitanja
-(uređivanje šuma, uzgajanje šuma, ekonomika šumarstva, iskorištavanje šuma,
+Web kviz iz šumarstva na fakultetskom nivou (87 pitanja, 4 ponuđena odgovora), sa 6 grupa
+pitanja (uređivanje šuma, uzgajanje šuma, ekonomika šumarstva, iskorištavanje šuma,
 dendrometrija, mix) i admin panelom za upravljanje pitanjima i praćenje rezultata.
 
-## Pokretanje
+## 1. Kako se kviz "pravi" — odakle dolaze pitanja
 
-Samo otvorite `index.html` u browseru, ili posluži folder preko GitHub Pages / bilo kojeg static hosting servisa.
+Postoje dva načina, i mogu se kombinovati:
 
-Bez postavljanja Firebase-a (vidi ispod) kviz radi odmah, koristi ugrađenih 75 pitanja iz
-`questions.js`, a rezultati se pamte samo lokalno na uređaju (dugme "Rang lista").
+- **Ugrađena pitanja** (`questions.js`) — 87 gotovih pitanja koja rade odmah, bez ikakvog
+  podešavanja. Ovo je polazna tačka; ako ih želite mijenjati bez admin panela, uređujete
+  direktno taj fajl (svako pitanje ima `category`, `q` — tekst pitanja, `a` — niz od 4
+  odgovora, `correct` — indeks tačnog odgovora u `a`).
+- **Admin panel** (`admin.html`) — preporučeni način. Nakon što povežete Firebase (uputstvo
+  u dijelu 3), admin panel vam daje formu za dodavanje/uređivanje/brisanje pitanja bez
+  ikakvog programiranja, uz uvoz ugrađenih pitanja jednim klikom kao polaznu osnovu.
 
-## Kako ispitati grupu ljudi
+Bez Firebase-a, kviz radi na osnovu `questions.js` i tako i ostaje (ne možete ga mijenjati
+kroz admin panel — samo ručnim uređivanjem fajla). Sa Firebase-om, kviz uvijek prvo
+pokušava učitati pitanja iz baze; ako baza nema pitanja ili nije dostupna, automatski
+koristi ugrađena kao rezervu — aplikacija se nikad ne "sruši" zbog toga.
 
-Nema potrebe za registracijom ili lozinkom za učesnike:
+## 2. Pokretanje — koji link korisnici otvaraju
 
-1. Podijelite link (ili GitHub Pages URL) svim učesnicima.
+Ovo su **dvije odvojene stranice s različitom namjenom**:
+
+- **`index.html` — stranica za učesnike kviza.** Ovo je link koji dijelite grupi ljudi
+  koja rješava kviz. Ne traži nikakvu prijavu.
+- **`admin.html` — stranica samo za organizatora/nastavnika.** Traži prijavu (email +
+  lozinka iz Firebase Authentication). Učesnicima se ovaj link ne dijeli.
+
+**Testiranje na svom računaru:** otvorite `index.html` dvoklikom (radi odmah, offline, sa
+ugrađenim pitanjima) — dobro za provjeru prije nego što ga podijelite grupi.
+
+**Da bi grupa mogla otvoriti kviz na svojim telefonima/računarima, sajt mora biti online.**
+Najjednostavniji besplatan način je GitHub Pages:
+
+1. Na GitHub-u otvorite ovaj repozitorij → **Settings → Pages**.
+2. Pod "Build and deployment" → "Source" izaberite **Deploy from a branch**.
+3. Pod "Branch" izaberite granu na kojoj su fajlovi (npr. `main`) i folder `/ (root)`,
+   pa **Save**.
+4. Nakon par minuta GitHub prikazuje link oblika:
+   `https://<vaš-github-username>.github.io/<naziv-repozitorija>/`
+5. **Taj link (bez ičega dodatnog na kraju) je link koji dijelite učesnicima** — on
+   automatski otvara `index.html`. Za sebe kao organizatora, na kraj tog istog linka
+   dodajte `admin.html`, npr.:
+   `https://<vaš-github-username>.github.io/<naziv-repozitorija>/admin.html`
+
+Svaka naredna izmjena (nova pitanja u `questions.js`, izmjene stila i sl.) koju pushate na
+tu granu automatski se objavljuje na isti link u roku od par minuta — ne treba ništa
+posebno pokretati.
+
+## 3. Kako ispitati grupu ljudi
+
+1. Podijelite `index.html` link (korak 2) svim učesnicima.
 2. Svako na svom telefonu/računaru otvori link, odabere grupu pitanja, unese svoje ime i
    klikne "Započni kviz".
-3. Svako prolazi kroz do 20 pitanja nezavisno (redoslijed pitanja i odgovora je nasumičan);
-   na kraju vidi svoj rezultat, ocjenu i pregled tačnih/netačnih odgovora.
-4. Ako je Firebase povezan (vidi ispod), svi rezultati sa svih uređaja stižu u admin panel
+3. Svako prolazi kroz do 20 pitanja nezavisno (redoslijed pitanja i odgovora je nasumičan
+   za svakog, tako da ne mogu prepisivati); na kraju vidi svoj rezultat, ocjenu i pregled
+   tačnih/netačnih odgovora.
+4. Ako je Firebase povezan (upute ispod), svi rezultati sa svih uređaja stižu u admin panel
    uživo — organizator vidi ko je šta odgovorio bez ikakvog prikupljanja podataka ručno.
 
-## Admin panel (`admin.html`)
+## 4. Admin panel (`admin.html`)
 
 Omogućava:
 
-- **Upravljanje pitanjima** — dodavanje, uređivanje, brisanje, uključivanje/isključivanje
-  pojedinačnih pitanja po grupama (isključeno pitanje se ne pojavljuje u kvizu).
-- **Uvoz ugrađenih pitanja** — dugme koje jednim klikom ubaci svih 75 ugrađenih pitanja u bazu,
-  odakle ih dalje uređujete.
+- **Upravljanje pitanjima** — dodavanje (uz pretragu postojećih, provjeru da nema
+  identičnih ponuđenih odgovora i dugme "Sačuvaj i dodaj novo" za brzo unošenje više
+  pitanja zaredom), uređivanje, brisanje, uključivanje/isključivanje pojedinačnih pitanja
+  po grupama (isključeno pitanje se ne pojavljuje u kvizu).
+- **Uvoz ugrađenih pitanja** — dugme koje jednim klikom ubaci svih 87 ugrađenih pitanja u
+  bazu, odakle ih dalje uređujete.
 - **Praćenje rezultata** — tabela svih rješavanja (ime, grupa, rezultat, datum), filter po
   grupi, statistika (broj rješavanja, prosjek, najbolji rezultat), izvoz u CSV, brisanje.
 
 Admin panel **zahtijeva Firebase** (bez njega prikazuje samo upozorenje). Rezultati i pitanja
 tada su dijeljeni — vidljivi sa svih uređaja, ne samo lokalno.
 
-## Postavljanje Firebase-a (jednom, ~10 minuta)
+## 5. Postavljanje Firebase-a (jednom, ~10 minuta)
 
 1. Idite na [console.firebase.google.com](https://console.firebase.google.com) i kliknite
    **Add project** (besplatno, Spark plan je dovoljan).
@@ -73,18 +114,20 @@ tada su dijeljeni — vidljivi sa svih uređaja, ne samo lokalno.
    rezultate.
 
 6. Otvorite `admin.html`, prijavite se nalogom iz koraka 3, kliknite
-   **"Uvezi ugrađenih 75 pitanja"** da napunite bazu, pa dalje uređujte po potrebi.
-7. Objavite promjene (commit + push, ili redeploy static hostinga) da `firebase-config.js`
-   stigne na produkciju.
+   **"Uvezi ugrađena pitanja"** da napunite bazu, pa dalje uređujte po potrebi.
+7. Objavite promjene (commit + push) da `firebase-config.js` stigne na produkciju — ako
+   koristite GitHub Pages (dio 2), to se desi automatski u roku od par minuta.
 
 `firebase-config.js` vrijednosti nisu tajne (to je standardan Firebase klijentski konfig) —
 stvarna zaštita je u Firestore Rules iz koraka 5.
 
 ## Struktura
 
-- `index.html`, `style.css`, `script.js` — sam kviz
-- `admin.html`, `admin.css`, `admin.js` — admin panel
-- `questions.js` — ugrađenih 75 pitanja (5 grupa × 15) + definicija grupa (`CATEGORIES`),
-  koristi se kao fallback kad Firebase nije povezan i kao izvor za uvoz u bazu
+- `index.html`, `style.css`, `script.js` — sam kviz (link za učesnike)
+- `admin.html`, `admin.css`, `admin.js` — admin panel (link samo za organizatora)
+- `questions.js` — ugrađenih 87 pitanja fakultetskog nivoa (5 grupa) + definicija grupa
+  (`CATEGORIES`); uključuje i pitanja o klasifikaciji stabala (Kraftove klase socijalnog
+  položaja) i klasiranju kvaliteta drvnih sortimenata. Koristi se kao rezerva kad Firebase
+  nije povezan i kao izvor za uvoz u bazu.
 - `firebase-config.js` — vaši Firebase projektni podaci (popunite prema uputama iznad)
 - `firebase-init.js` — inicijalizacija Firebase klijenta (`db`, `auth`)

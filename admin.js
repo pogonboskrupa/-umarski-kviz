@@ -19,6 +19,7 @@ const tabPanels = {
 };
 
 const categoryFilter = document.getElementById("categoryFilter");
+const questionSearch = document.getElementById("questionSearch");
 const seedBtn = document.getElementById("seedBtn");
 const addQuestionBtn = document.getElementById("addQuestionBtn");
 const questionsCount = document.getElementById("questionsCount");
@@ -107,12 +108,16 @@ async function loadQuestions() {
 
 function renderQuestions() {
   const filter = categoryFilter.value;
-  const filtered = filter === "all" ? allQuestions : allQuestions.filter((q) => q.category === filter);
+  const search = questionSearch.value.trim().toLowerCase();
+  let filtered = filter === "all" ? allQuestions : allQuestions.filter((q) => q.category === filter);
+  if (search) {
+    filtered = filtered.filter((q) => q.q.toLowerCase().includes(search) || q.a.some((a) => a.toLowerCase().includes(search)));
+  }
 
   questionsCount.textContent = `${filtered.length} pitanje/a prikazano (ukupno u bazi: ${allQuestions.length})`;
 
   if (filtered.length === 0) {
-    questionsList.innerHTML = "<p class='muted-text'>Nema pitanja u ovoj kategoriji. Dodajte novo ili uvezite ugrađenih 75.</p>";
+    questionsList.innerHTML = "<p class='muted-text'>Nema pitanja koja odgovaraju filteru/pretrazi. Dodajte novo ili uvezite ugrađena pitanja.</p>";
     return;
   }
 
@@ -146,12 +151,19 @@ function renderQuestions() {
   });
 }
 
-function openForm(question) {
+function openForm(question, prefillCategory) {
   editingId = question ? question.id : null;
-  const q = question || { category: REAL_CATEGORIES[0].id, q: "", a: ["", "", "", ""], correct: 0, active: true };
+  const q = question || {
+    category: prefillCategory || REAL_CATEGORIES[0].id,
+    q: "",
+    a: ["", "", "", ""],
+    correct: 0,
+    active: true,
+  };
 
   questionForm.hidden = false;
   questionForm.innerHTML = `
+    <p id="formError" class="form-error" hidden></p>
     <label>Kategorija</label>
     <select id="formCategory">
       ${REAL_CATEGORIES.map((c) => `<option value="${c.id}" ${c.id === q.category ? "selected" : ""}>${c.icon} ${c.label}</option>`).join("")}
@@ -162,7 +174,7 @@ function openForm(question) {
     ${q.a.map((ans, i) => `
       <div class="answer-row">
         <input type="radio" name="formCorrect" value="${i}" ${i === q.correct ? "checked" : ""} />
-        <input type="text" class="form-answer" data-idx="${i}" value="${ans.replace(/"/g, "&quot;")}" />
+        <input type="text" class="form-answer" data-idx="${i}" value="${ans.replace(/"/g, "&quot;")}" placeholder="Odgovor ${i + 1}" />
       </div>
     `).join("")}
     <label class="checkbox-label">
@@ -171,11 +183,15 @@ function openForm(question) {
     </label>
     <div class="form-actions">
       <button id="formSaveBtn">💾 Sačuvaj</button>
+      ${editingId ? "" : '<button id="formSaveNewBtn" class="btn-secondary">💾 Sačuvaj i dodaj novo</button>'}
       <button id="formCancelBtn" class="btn-secondary">Otkaži</button>
     </div>
   `;
   questionForm.scrollIntoView({ behavior: "smooth", block: "center" });
-  document.getElementById("formSaveBtn").addEventListener("click", saveQuestion);
+  document.getElementById("formQuestion").focus();
+  document.getElementById("formSaveBtn").addEventListener("click", () => saveQuestion(false));
+  const saveNewBtn = document.getElementById("formSaveNewBtn");
+  if (saveNewBtn) saveNewBtn.addEventListener("click", () => saveQuestion(true));
   document.getElementById("formCancelBtn").addEventListener("click", closeForm);
 }
 
@@ -185,27 +201,62 @@ function closeForm() {
   questionForm.innerHTML = "";
 }
 
-async function saveQuestion() {
+function showFormError(message) {
+  const el = document.getElementById("formError");
+  el.textContent = message;
+  el.hidden = false;
+}
+
+async function saveQuestion(keepOpenForNext) {
   const category = document.getElementById("formCategory").value;
   const questionText = document.getElementById("formQuestion").value.trim();
   const answers = Array.from(document.querySelectorAll(".form-answer")).map((el) => el.value.trim());
   const correctRadio = document.querySelector('input[name="formCorrect"]:checked');
   const active = document.getElementById("formActive").checked;
 
-  if (!questionText || answers.some((a) => !a) || !correctRadio) {
-    alert("Popunite pitanje, sva 4 odgovora i označite tačan odgovor.");
+  if (!questionText) {
+    showFormError("Unesite tekst pitanja.");
+    return;
+  }
+  if (answers.some((a) => !a)) {
+    showFormError("Popunite sva 4 ponuđena odgovora.");
+    return;
+  }
+  const normalized = answers.map((a) => a.toLowerCase());
+  if (new Set(normalized).size !== normalized.length) {
+    showFormError("Dva ili više ponuđenih odgovora su identična — svaki odgovor mora biti različit.");
+    return;
+  }
+  if (!correctRadio) {
+    showFormError("Označite koji je od ponuđenih odgovora tačan.");
     return;
   }
 
   const data = { category, q: questionText, a: answers, correct: Number(correctRadio.value), active };
 
-  if (editingId) {
-    await db.collection("questions").doc(editingId).update(data);
-  } else {
-    await db.collection("questions").add(data);
+  const saveBtn = document.getElementById("formSaveBtn");
+  const saveNewBtn = document.getElementById("formSaveNewBtn");
+  [saveBtn, saveNewBtn].forEach((b) => b && (b.disabled = true));
+
+  try {
+    if (editingId) {
+      await db.collection("questions").doc(editingId).update(data);
+    } else {
+      await db.collection("questions").add(data);
+    }
+  } catch (err) {
+    showFormError("Greška prilikom čuvanja: " + err.message);
+    [saveBtn, saveNewBtn].forEach((b) => b && (b.disabled = false));
+    return;
   }
-  closeForm();
-  loadQuestions();
+
+  await loadQuestions();
+
+  if (keepOpenForNext) {
+    openForm(null, category);
+  } else {
+    closeForm();
+  }
 }
 
 async function deleteQuestion(id) {
@@ -223,8 +274,8 @@ async function toggleActive(id, active) {
 
 async function seedQuestions() {
   if (allQuestions.length > 0) {
-    if (!confirm(`Baza već ima ${allQuestions.length} pitanja. Ipak dodati ugrađenih 75 pitanja (mogući duplikati)?`)) return;
-  } else if (!confirm("Uvesti ugrađenih 75 pitanja u bazu?")) {
+    if (!confirm(`Baza već ima ${allQuestions.length} pitanja. Ipak dodati ugrađenih ${QUESTIONS.length} pitanja (mogući duplikati)?`)) return;
+  } else if (!confirm(`Uvesti ugrađenih ${QUESTIONS.length} pitanja u bazu?`)) {
     return;
   }
   seedBtn.disabled = true;
@@ -239,7 +290,7 @@ async function seedQuestions() {
     await batch.commit();
   }
   seedBtn.disabled = false;
-  seedBtn.textContent = "⬇️ Uvezi ugrađenih 75 pitanja";
+  seedBtn.textContent = "⬇️ Uvezi ugrađena pitanja";
   loadQuestions();
 }
 
@@ -337,6 +388,7 @@ logoutBtn.addEventListener("click", logout);
 tabBtns.forEach((btn) => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
 
 categoryFilter.addEventListener("change", renderQuestions);
+questionSearch.addEventListener("input", renderQuestions);
 addQuestionBtn.addEventListener("click", () => openForm(null));
 seedBtn.addEventListener("click", seedQuestions);
 

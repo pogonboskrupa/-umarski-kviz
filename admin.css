@@ -60,6 +60,24 @@
   font-size: 0.85rem;
 }
 
+.search-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #e2ede6;
+  font-size: 0.85rem;
+}
+
+.form-error {
+  color: var(--wrong);
+  background: #fbe2e2;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
 .toolbar button { flex-shrink: 0; }
 
 .muted-text { color: #888; font-size: 0.85rem; margin: 0 0 12px; }
@@ -222,7 +240,8 @@ table.results-table th { color: #555; font-weight: 700; }
   .tabs { border-color: #2b3f33; }
   .tab-btn { color: #a9bdb1; }
   .tab-btn.active { color: var(--green-light); border-bottom-color: var(--green-light); }
-  .toolbar select { background: #1c2c22; border-color: #2b3f33; color: var(--text); }
+  .toolbar select, .search-input { background: #1c2c22; border-color: #2b3f33; color: var(--text); }
+  .form-error { background: #3a1f1f; }
   .question-form { background: #1c2c22; border-color: #2b3f33; }
   .question-form input, .question-form select, .question-form textarea {
     background: #16241c; border-color: #2b3f33; color: var(--text);
