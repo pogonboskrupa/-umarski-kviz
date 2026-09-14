@@ -379,6 +379,64 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .leaderboard-date { font-size: 0.75rem; color: #888; }
 .leaderboard-score { font-weight: 700; color: var(--green-dark); }
 
+.podium {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.podium-item {
+  border: 2px solid #e2ede6;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+}
+
+.podium-medal {
+  grid-row: 1 / 4;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.podium-place {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #888;
+}
+
+.podium-name { font-weight: 700; font-size: 1.05rem; }
+.podium-points { font-weight: 600; color: var(--green-dark); }
+.podium-item .leaderboard-date { grid-column: 2; }
+
+.podium-item.rank-1 { border-color: #e8c76b; background: #fffaf0; }
+.podium-item.rank-2 { border-color: #c7ccd1; background: #fafbfc; }
+.podium-item.rank-3 { border-color: #cf9a6b; background: #fdf7f2; }
+
+table.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+table.results-table th,
+table.results-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e2ede6;
+  white-space: nowrap;
+}
+
+table.results-table th { color: #555; font-weight: 700; }
+
+.leaderboard-rest-table { margin-top: 4px; }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f1a14;
@@ -401,4 +459,11 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   .category-option.selected { background: #223526; border-color: var(--green-light); color: var(--green-light); }
   .category-badge { background: #223526; color: var(--green-light); }
   .firebase-banner { background: #2b2410; border-color: #6b5416; color: #e8c76b; }
+  .podium-item { background: #1c2c22; border-color: #2b3f33; }
+  .podium-item.rank-1 { border-color: #e8c76b; background: #2b2410; }
+  .podium-item.rank-2 { border-color: #7e858c; background: #1e2226; }
+  .podium-item.rank-3 { border-color: #cf9a6b; background: #2b1f14; }
+  .podium-place { color: #a9bdb1; }
+  table.results-table th, table.results-table td { border-color: #2b3f33; }
+  table.results-table th { color: #a9bdb1; }
 }

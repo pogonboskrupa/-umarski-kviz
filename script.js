@@ -290,6 +290,8 @@ function saveToLeaderboard(correctCount, total, percent) {
   }
 }
 
+const MEDALS = ["🥇", "🥈", "🥉"];
+
 function renderLeaderboard() {
   const entries = loadLeaderboard().sort((a, b) => b.percent - a.percent || b.score - a.score);
   leaderboardList.innerHTML = "";
@@ -299,19 +301,47 @@ function renderLeaderboard() {
     return;
   }
 
-  entries.forEach((entry, idx) => {
+  const top3 = entries.slice(0, 3);
+  const rest = entries.slice(3);
+
+  const podium = document.createElement("div");
+  podium.className = "podium";
+  top3.forEach((entry, idx) => {
     const item = document.createElement("div");
-    item.className = "leaderboard-item";
+    item.className = `podium-item rank-${idx + 1}`;
     item.innerHTML = `
-      <span class="leaderboard-rank">${idx + 1}.</span>
-      <span class="leaderboard-info">
-        <div class="leaderboard-name">${entry.name}</div>
-        <div class="leaderboard-date">${entry.category ? entry.category + " · " : ""}${entry.date}</div>
-      </span>
-      <span class="leaderboard-score">${entry.score}/${entry.total} (${entry.percent}%)</span>
+      <div class="podium-medal">${MEDALS[idx]}</div>
+      <div class="podium-place">${idx + 1}. mjesto</div>
+      <div class="podium-name">${entry.name}</div>
+      <div class="podium-points">${entry.score}/${entry.total} poena (${entry.percent}%)</div>
+      <div class="leaderboard-date">${entry.category ? entry.category + " · " : ""}${entry.date}</div>
     `;
-    leaderboardList.appendChild(item);
+    podium.appendChild(item);
   });
+  leaderboardList.appendChild(podium);
+
+  if (rest.length > 0) {
+    const table = document.createElement("table");
+    table.className = "results-table leaderboard-rest-table";
+    table.innerHTML = `
+      <thead><tr><th>#</th><th>Ime</th><th>Kategorija</th><th>Poeni</th><th>Datum</th></tr></thead>
+      <tbody>
+        ${rest
+          .map(
+            (entry, idx) => `
+          <tr>
+            <td>${idx + 4}.</td>
+            <td>${entry.name}</td>
+            <td>${entry.category || "—"}</td>
+            <td>${entry.score}/${entry.total} (${entry.percent}%)</td>
+            <td>${entry.date}</td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    `;
+    leaderboardList.appendChild(table);
+  }
 }
 
 function openLeaderboard() {

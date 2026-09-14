@@ -27,6 +27,7 @@ const questionForm = document.getElementById("questionForm");
 const questionsList = document.getElementById("questionsList");
 
 const resultsCategoryFilter = document.getElementById("resultsCategoryFilter");
+const resultsSort = document.getElementById("resultsSort");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const refreshResultsBtn = document.getElementById("refreshResultsBtn");
 const statsRow = document.getElementById("statsRow");
@@ -303,9 +304,11 @@ async function loadResults() {
   renderResults();
 }
 
+const RESULT_MEDALS = ["🥇", "🥈", "🥉"];
+
 function renderResults() {
   const filter = resultsCategoryFilter.value;
-  const filtered = filter === "all" ? allResults : allResults.filter((r) => r.category === filter);
+  let filtered = filter === "all" ? allResults : allResults.filter((r) => r.category === filter);
 
   const count = filtered.length;
   const avg = count ? Math.round(filtered.reduce((sum, r) => sum + r.percent, 0) / count) : 0;
@@ -322,23 +325,30 @@ function renderResults() {
     return;
   }
 
+  const byRank = resultsSort.value === "rank";
+  filtered = byRank
+    ? [...filtered].sort((a, b) => b.percent - a.percent || b.score - a.score)
+    : [...filtered].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
   const rows = filtered
-    .map(
-      (r) => `
-      <tr>
+    .map((r, idx) => {
+      const rankCell = byRank ? (idx < 3 ? RESULT_MEDALS[idx] : `${idx + 1}.`) : "—";
+      return `
+      <tr class="${byRank && idx < 3 ? "rank-row-" + (idx + 1) : ""}">
+        <td>${rankCell}</td>
         <td>${r.name}</td>
         <td>${r.categoryLabel || categoryLabel(r.category)}</td>
         <td>${r.score}/${r.total}</td>
         <td>${r.percent}%</td>
         <td>${formatDate(r.createdAt)}</td>
         <td><button class="icon-btn delete-result-btn" data-id="${r.id}">🗑️</button></td>
-      </tr>`
-    )
+      </tr>`;
+    })
     .join("");
 
   resultsTableWrap.innerHTML = `
     <table class="results-table">
-      <thead><tr><th>Ime</th><th>Kategorija</th><th>Rezultat</th><th>%</th><th>Datum</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>Ime</th><th>Kategorija</th><th>Rezultat</th><th>%</th><th>Datum</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;
@@ -393,6 +403,7 @@ addQuestionBtn.addEventListener("click", () => openForm(null));
 seedBtn.addEventListener("click", seedQuestions);
 
 resultsCategoryFilter.addEventListener("change", renderResults);
+resultsSort.addEventListener("change", renderResults);
 exportCsvBtn.addEventListener("click", exportCsv);
 refreshResultsBtn.addEventListener("click", loadResults);
 

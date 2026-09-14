@@ -220,21 +220,9 @@
 
 .results-table-wrap { overflow-x: auto; }
 
-table.results-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-table.results-table th,
-table.results-table td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid #e2ede6;
-  white-space: nowrap;
-}
-
-table.results-table th { color: #555; font-weight: 700; }
+tr.rank-row-1 { background: #fffaf0; }
+tr.rank-row-2 { background: #fafbfc; }
+tr.rank-row-3 { background: #fdf7f2; }
 
 @media (prefers-color-scheme: dark) {
   .tabs { border-color: #2b3f33; }
@@ -255,4 +243,7 @@ table.results-table th { color: #555; font-weight: 700; }
   .stat-card .stat-label { color: #a9bdb1; }
   table.results-table th, table.results-table td { border-color: #2b3f33; }
   table.results-table th { color: #a9bdb1; }
+  tr.rank-row-1 { background: #2b2410; }
+  tr.rank-row-2 { background: #1e2226; }
+  tr.rank-row-3 { background: #2b1f14; }
 }
